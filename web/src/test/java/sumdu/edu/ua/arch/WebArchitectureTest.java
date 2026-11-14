@@ -28,4 +28,14 @@ public class WebArchitectureTest {
                 .should().dependOnClassesThat().resideInAnyPackage("..web..", "..persistence..")
                 .check(imported);
     }
+
+    @Test
+    void controllersShouldNotDependOnPersistence() {
+        JavaClasses imported = new ClassFileImporter().importPackages("sumdu.edu.ua");
+
+        noClasses()
+                .that().haveSimpleNameEndingWith("Controller")
+                .should().dependOnClassesThat().resideInAPackage("..persistence..")
+                .check(imported);
+    }
 }
