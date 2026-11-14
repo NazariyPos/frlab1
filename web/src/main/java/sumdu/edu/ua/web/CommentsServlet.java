@@ -4,19 +4,35 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import sumdu.edu.ua.core.domain.Book;
 import sumdu.edu.ua.core.domain.Comment;
 import sumdu.edu.ua.core.domain.PageRequest;
-import sumdu.edu.ua.web.config.Beans;
+import sumdu.edu.ua.core.service.CatalogService;
+import sumdu.edu.ua.core.service.CommentService;
 
 import java.io.IOException;
 import java.util.List;
 
+@Component
 public class CommentsServlet extends HttpServlet {
+
+    private static final Logger log = LoggerFactory.getLogger(CommentsServlet.class);
+
+    private final CatalogService catalogService;
+    private final CommentService commentService;
+
+    public CommentsServlet(CatalogService catalogService, CommentService commentService) {
+        this.catalogService = catalogService;
+        this.commentService = commentService;
+    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+
         String bookIdStr = req.getParameter("bookId");
         if (bookIdStr == null) {
             resp.sendRedirect(req.getContextPath() + "/books");
@@ -31,22 +47,19 @@ public class CommentsServlet extends HttpServlet {
             return;
         }
 
-        try {
-            Book book = Beans.getCatalogService().findById(bookId);
-            if (book == null) {
-                resp.sendError(HttpServletResponse.SC_NOT_FOUND, "book not found");
-                return;
-            }
-            List<Comment> comments = Beans.getCommentService()
-                    .list(bookId, null, null, new PageRequest(0, 20))
-                    .getItems();
-
-            req.setAttribute("book", book);
-            req.setAttribute("comments", comments);
-            req.getRequestDispatcher("/WEB-INF/views/book-comments.jsp").forward(req, resp);
-        } catch (Exception e) {
-            throw new ServletException("Cannot load book details", e);
+        Book book = catalogService.findById(bookId);
+        if (book == null) {
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND, "book not found");
+            return;
         }
+
+        List<Comment> comments = commentService
+                .list(bookId, null, null, new PageRequest(0, 20))
+                .getItems();
+
+        req.setAttribute("book", book);
+        req.setAttribute("comments", comments);
+        req.getRequestDispatcher("/WEB-INF/views/book-comments.jsp").forward(req, resp);
     }
 
     @Override
@@ -62,7 +75,6 @@ public class CommentsServlet extends HttpServlet {
             return;
         }
 
-        // "хак" для DELETE через HTML-форму
         if ("delete".equalsIgnoreCase(req.getParameter("_method"))) {
             long commentId;
             try {
@@ -72,15 +84,14 @@ public class CommentsServlet extends HttpServlet {
                 return;
             }
             try {
-                Beans.getCommentService().delete(bookId, commentId);
+                commentService.delete(bookId, commentId);
                 resp.sendRedirect(req.getContextPath() + "/comments?bookId=" + bookId);
             } catch (IllegalStateException e) {
-                // правило 24 годин
+                log.warn("24h rule violation: {}", e.getMessage());
                 resp.sendError(HttpServletResponse.SC_CONFLICT, e.getMessage());
             } catch (IllegalArgumentException e) {
+                log.warn("Comment not found: {}", e.getMessage());
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
-            } catch (Exception e) {
-                throw new ServletException("Cannot delete comment", e);
             }
             return;
         }
@@ -89,12 +100,11 @@ public class CommentsServlet extends HttpServlet {
         String text   = req.getParameter("text");
 
         try {
-            Beans.getCommentService().add(bookId, author, text);
+            commentService.add(bookId, author, text);
             resp.sendRedirect(req.getContextPath() + "/comments?bookId=" + bookId);
         } catch (IllegalArgumentException e) {
+            log.warn("Validation failed: {}", e.getMessage());
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
-        } catch (Exception e) {
-            throw new ServletException("Cannot save comment", e);
         }
     }
 }

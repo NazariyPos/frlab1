@@ -4,7 +4,9 @@ import sumdu.edu.ua.core.domain.Book;
 import sumdu.edu.ua.core.domain.Page;
 import sumdu.edu.ua.core.domain.PageRequest;
 import sumdu.edu.ua.core.port.CatalogRepositoryPort;
+import org.springframework.stereotype.Service;
 
+@Service
 public class CatalogService {
     private final CatalogRepositoryPort repo;
 

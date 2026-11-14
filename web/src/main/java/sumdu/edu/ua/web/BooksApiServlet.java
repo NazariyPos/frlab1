@@ -6,29 +6,36 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import sumdu.edu.ua.core.domain.Book;
 import sumdu.edu.ua.core.domain.PageRequest;
-import sumdu.edu.ua.web.config.Beans;
+import sumdu.edu.ua.core.service.CatalogService;
 
 import java.io.IOException;
 
+@Component
 public class BooksApiServlet extends HttpServlet {
 
     private static final Logger log = LoggerFactory.getLogger(BooksApiServlet.class);
-    private final ObjectMapper om = new ObjectMapper();
+
+    private final CatalogService catalogService;
+    private final ObjectMapper objectMapper;
+
+    public BooksApiServlet(CatalogService catalogService, ObjectMapper objectMapper) {
+        this.catalogService = catalogService;
+        this.objectMapper = objectMapper;
+    }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json;charset=UTF-8");
-
         int page = parseInt(req.getParameter("page"), 0);
         int size = parseInt(req.getParameter("size"), 10);
         String q = req.getParameter("q");
 
         try {
-            var result = Beans.getCatalogService().search(q, new PageRequest(page, size));
-            om.writeValue(resp.getWriter(), result);
+            var result = catalogService.search(q, new PageRequest(page, size));
+            objectMapper.writeValue(resp.getWriter(), result);
         } catch (Exception e) {
             log.error("GET /api/books failed", e);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "DB error");
@@ -36,16 +43,13 @@ public class BooksApiServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json;charset=UTF-8");
-
         try {
-            Book book = om.readValue(req.getInputStream(), Book.class);
-            Book saved = Beans.getCatalogService()
-                    .add(book.getTitle(), book.getAuthor(), book.getPubYear());
+            Book book = objectMapper.readValue(req.getInputStream(), Book.class);
+            Book saved = catalogService.add(book.getTitle(), book.getAuthor(), book.getPubYear());
             resp.setStatus(HttpServletResponse.SC_CREATED);
-            om.writeValue(resp.getWriter(), saved);
+            objectMapper.writeValue(resp.getWriter(), saved);
         } catch (IllegalArgumentException e) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         } catch (Exception e) {

@@ -36,3 +36,12 @@ java.sql.SQLClientInfoException: Client info name 'ApplicationName' not supporte
 	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
 	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-11-14 17:39:05.792175+02:00 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "BOOKS" not found; SQL statement:
+select id, title, author, pub_year from books where 1=1 order by id desc limit ? offset ? [42102-224]
+2026-11-14 17:39:05.792175+02:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "BOOKS" not found; SQL statement:
+select id, title, author, pub_year from books where 1=1 order by id desc limit ? offset ? [42102-224]
+2026-11-14 17:39:14.864524+02:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "BOOKS" not found; SQL statement:
+select id, title, author, pub_year from books where 1=1 order by id desc limit ? offset ? [42102-224]

@@ -4,10 +4,12 @@ import sumdu.edu.ua.core.domain.Comment;
 import sumdu.edu.ua.core.domain.Page;
 import sumdu.edu.ua.core.domain.PageRequest;
 import sumdu.edu.ua.core.port.CommentRepositoryPort;
+import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
 
+@Service
 public class CommentService {
     private final CommentRepositoryPort repo;
 
