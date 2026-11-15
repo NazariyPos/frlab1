@@ -8,8 +8,7 @@ import sumdu.edu.ua.persistence.jdbc.DbInit;
 public class AppInit {
     public static void main(String[] args) {
         DbInit.init();
-
         SpringApplication.run(AppInit.class, args);
-        System.out.println("Started at http://localhost:8080/api/books");
+        System.out.println("Started at http://localhost:8080/books");
     }
 }
