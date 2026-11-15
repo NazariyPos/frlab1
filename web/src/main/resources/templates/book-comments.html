@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: header}"></head>
+<body>
+
+<h1 th:text="${book.title}">Book Title</h1>
+<p><i th:text="${book.author}"></i>, <span th:text="${book.pubYear}"></span></p>
+
+<h3>Коментарі</h3>
+<p th:if="${#lists.isEmpty(comments)}">Ще немає коментарів.</p>
+
+<ul th:if="${!#lists.isEmpty(comments)}">
+    <li th:each="c : ${comments}">
+        <b th:text="${c.author}"></b>: <span th:text="${c.text}"></span>
+        <i>(<span th:text="${c.createdAt}"></span>)</i>
+        <!-- Форма видалення -->
+        <form th:action="@{/comments/delete}" method="post" style="display:inline">
+            <input type="hidden" name="bookId" th:value="${book.id}">
+            <input type="hidden" name="commentId" th:value="${c.id}">
+            <button type="submit">Видалити</button>
+        </form>
+    </li>
+</ul>
+
+<h3>Додати коментар</h3>
+<form th:action="@{/comments}" method="post">
+    <input type="hidden" name="bookId" th:value="${book.id}">
+    Автор: <input type="text" name="author"><br>
+    Текст: <textarea name="text"></textarea><br>
+    <button type="submit">Додати</button>
+</form>
+
+<p><a th:href="@{/books}">← Повернутись до списку книг</a></p>
+
+</body>
+</html>
